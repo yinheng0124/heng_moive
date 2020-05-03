@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.bw.dao.HouseDao">
+  
+  
+    <select id="getList" resultType="house">
+	SELECT  h.*, GROUP_CONCAT(o.owner_name) hname from  house  h
+	left join center c on c.house_id=h.house_id
+	LEFT  join houseowner o  on c.owner_id = o.owner_id
+	<where>
+	  <if test="hname !=null and hname !=''"> <!-- 房主的模糊查询 -->
+	     h.house_id  in(select house_id  from  center 
+	     where owner_id in (
+	     	select owner_id   from houseowner where  owner_name like concat('%',#{hname},'%') 
+	     	)
+	     )
+	   </if>
+	   <if test="house_address !=null and  house_address !=''">  <!-- 地址的模糊查询 -->
+	      and  h.house_address like concat('%',#{house_address},'%')
+	   </if>
+	</where>
+	GROUP BY h.house_id	 
+    </select>
+    
+    
+    
+    <!-- 添加房屋信息 -->
+    <insert id="addhouse" useGeneratedKeys="true"  keyProperty="h.house_id">
+        insert into  house set house_address=#{h.house_address},
+        house_use=#{h.house_use},house_area=#{h.house_area},house_pec=#{h.house_pec}
+    </insert>
+    
+    <!-- 添加中间表建立关联 -->
+    <insert id="addCenter">
+      insert into  center values
+      <foreach collection="oids" item="oid" separator=",">
+         (#{hid},#{oid})
+      </foreach>
+    </insert>
+    
+      
+    <update id="updateHoues">
+      update house 
+      <set>
+        <if test="h.house_address !=null and h.house_address !=''"> house_use=#{h.house_address},</if>
+        <if test="h.house_area !=null and h.house_area !=''"> house_area=#{h.house_area},</if>
+        <if test="h.house_use !=null and h.house_use !=''"> house_use=#{h.house_use},</if>
+        <if test="h.house_pec !=null and h.house_pec !=''"> house_pec=#{h.house_pec},</if>
+      </set> 
+      where house_id=#{h.house_id}
+    </update>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+<!--     
+      <resultMap type="house" id="hhmap">
+        <id></id>
+         <result/>
+         <collection property="olist" ofType="HouseOwner" select="zcx" column="house_id"></collection>
+      </resultMap>
+    
+    
+      <select id="hmap" resultMap="hhmap">
+        select *  from   house
+         <if test="hname !=null and hname !=''">
+	       house_id  in(select house_id  from  center 
+	       where owner_id in (
+	     	select owner_id   from houseownerwhere  owner_name like concat('%',#{hname},'%') 
+	     		)
+	  	   )
+	     <if test="house_address !=null and  house_address !=''">
+	      and  h.house_address like concat('%',#{house_address},'%')
+	   </if>
+	   </if>
+      </select>
+      
+      <select id="zcx"  resultType="houseowner">
+       select  *  from   houseowner   h
+       left join center c  on h.owner_id = c.owner_id
+       where  c.house_id=#{house_id}
+      </select> -->
+  
+  </mapper>

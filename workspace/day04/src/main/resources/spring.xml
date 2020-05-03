@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:p="http://www.springframework.org/schema/p"
+ xmlns:aop="http://www.springframework.org/schema/aop"
+ xmlns:tx="http://www.springframework.org/schema/tx"
+ xmlns:context="http://www.springframework.org/schema/context"
+ xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+  <!-- 包扫描 -->
+  <context:component-scan base-package="com.bw"></context:component-scan>
+  
+  <!-- 加载外部资源文件 -->
+  <context:property-placeholder location="classpath:jdbc.properties"/>
+
+  <!-- 数据源 -->
+  <bean id="dataSoure" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+     <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+     <property name="url" value="${jdbc.url}"></property>
+     <property name="username" value="${jdbc.username}"></property>
+     <property name="password" value="${jdbc.password}"></property>
+  </bean>
+  
+  <!-- 配置sqlsessioonFactroy -->
+  <bean id="sqlSessionFactory"  class="org.mybatis.spring.SqlSessionFactoryBean">
+     <property name="dataSource" ref="dataSoure"></property>
+     <property name="configLocation" value="classpath:mybatis.xml"></property>
+     <property name="typeAliasesPackage" value="com.bw.bean"></property>
+  </bean>
+  <!-- 配置mapper -->
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+      <!-- <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property> -->
+      <property name="basePackage" value="com.bw.dao"></property>
+  </bean>
+  
+  <!-- 事务管理器 -->
+  <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+     <property name="dataSource" ref="dataSoure"></property>
+  </bean>
+  
+  <!-- 事务模板 -->
+  <bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+      <property name="transactionManager" ref="transactionManager"></property>
+  </bean>
+  
+  <!-- 声明式  基于注解 -->
+   <tx:annotation-driven transaction-manager="transactionManager"/>
+  
+  
+  <!-- 声明式 基于aop  -->
+   <tx:advice transaction-manager="transactionManager" id="txa">
+      <tx:attributes>
+         <tx:method name="*" isolation="DEFAULT" propagation="REQUIRED"/>
+      </tx:attributes>
+   </tx:advice>
+
+   <aop:config>
+      <aop:pointcut expression="execution(* com.bw.service.impl.*.*(..))" id="tx"/>
+      <aop:advisor advice-ref="txa"  pointcut-ref="tx"/>
+   </aop:config>
+   
+   
+  
+  
+
+</beans>
