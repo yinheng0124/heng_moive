@@ -21,5 +21,6 @@ public interface HouseSeriver {
 	List<Integer> getOidsByHid(int hid);
 
 	void updateHoues(House h, Integer[] oids);
-
+	
+	void say();
 }
